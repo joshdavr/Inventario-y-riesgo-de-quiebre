@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Autor** | TU NOMBRE AQUÍ |
+| **Autor** | Joshua Ribadeneira |
 | **Curso** | Diseño de Sistemas |
 | **Diagramas** | Mermaid (se visualizan directamente en GitHub) |
 
