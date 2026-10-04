@@ -1,0 +1,23 @@
+flowchart TB
+    ENC(["Encargado de bodega"])
+    JEF(["Jefe de compras"])
+    subgraph SIS["Sistema de Inventario y Riesgo de Quiebre"]
+        WEB["Aplicación web<br/>[React SPA]<br/>Alertas, recomendaciones y aprobación"]
+        API["Backend modular<br/>[Spring Boot - monolito modular]<br/>Inventario, Recomendaciones, Aprobación,<br/>Auditoría, Adaptador de compras"]
+        FC["Servicio de pronóstico<br/>[Contenedor separado - REST]<br/>Demanda y riesgo de quiebre"]
+        WRK["Worker asíncrono<br/>[Spring Boot - perfil worker]<br/>Publica eventos, llama a compras, notifica"]
+        MQ{{"Broker de mensajes<br/>[RabbitMQ]"}}
+        DB[("Base de datos<br/>[PostgreSQL]<br/>Esquema por módulo + outbox")]
+    end
+    COM[["Sistema de compras existente"]]
+    VEN[["POS / ventas"]]
+    ENC --> WEB
+    JEF --> WEB
+    WEB -->|"REST / JSON"| API
+    API -->|"JDBC"| DB
+    API -->|"REST con timeout y circuit breaker"| FC
+    FC -->|"Vista de consumo (solo lectura)"| DB
+    API -->|"Eventos vía outbox"| MQ
+    MQ --> WRK
+    WRK -->|"REST idempotente"| COM
+    VEN -->|"Carga de consumo (lote o API)"| API

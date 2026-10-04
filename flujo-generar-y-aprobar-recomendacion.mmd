@@ -1,0 +1,33 @@
+sequenceDiagram
+    autonumber
+    actor E as Encargado
+    participant W as Web React
+    participant A as Backend
+    participant F as Servicio de pronóstico
+    participant D as PostgreSQL
+    participant Q as RabbitMQ
+    participant K as Worker
+    participant C as Sistema de compras
+
+    Note over A,F: Cada 60 min o al detectar baja de stock
+    A->>D: Leer existencias y consumo por producto y bodega
+    A->>F: Solicitar pronóstico (timeout 2 s)
+    alt Pronóstico disponible
+        F-->>A: Demanda estimada e intervalo
+    else Timeout, error o circuit breaker abierto
+        A->>A: Calcular con regla de respaldo (días de cobertura)
+        Note right of A: Se marca origen = REGLA_RESPALDO
+    end
+    A->>D: Guardar recomendación PENDIENTE (transferir o comprar)
+    E->>W: Abre la bandeja de recomendaciones
+    W->>A: GET /recomendaciones?estado=PENDIENTE
+    E->>W: Aprueba una recomendación
+    W->>A: POST /recomendaciones/:id/aprobar
+    A->>D: Estado APROBADA + auditoría + outbox (misma transacción)
+    A-->>W: 200 OK
+    K->>D: Leer outbox
+    K->>Q: Publicar RecomendacionAprobada
+    Q->>K: Entregar al consumidor de compras
+    K->>C: Crear orden o transferencia (clave de idempotencia = id de recomendación)
+    C-->>K: Confirmación
+    K->>D: Estado EJECUTADA + auditoría

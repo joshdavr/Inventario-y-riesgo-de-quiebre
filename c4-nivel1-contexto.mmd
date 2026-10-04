@@ -1,0 +1,13 @@
+flowchart TB
+    ENC(["Encargado de bodega<br/>[Persona]"])
+    JEF(["Jefe de compras<br/>[Persona]"])
+    SIS["Sistema de Inventario y Riesgo de Quiebre<br/>[Sistema en desarrollo]<br/>Consulta existencias, estima riesgo<br/>y recomienda transferencia o compra"]
+    COM[["Sistema de compras existente<br/>[Sistema externo]"]]
+    VEN[["POS / sistema de ventas<br/>[Sistema externo]"]]
+    MAIL[["Servicio de correo<br/>[Sistema externo]"]]
+    ENC -->|"Consulta riesgo, aprueba o rechaza"| SIS
+    JEF -->|"Supervisa recomendaciones y métricas"| SIS
+    VEN -->|"Consumo y ventas"| SIS
+    SIS -->|"Órdenes y transferencias aprobadas"| COM
+    COM -->|"Recepciones y órdenes en curso"| SIS
+    SIS -->|"Alertas de riesgo alto"| MAIL
